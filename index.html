@@ -34,24 +34,55 @@
       width: 30,
       height: 30,
       speed: 5,
-      isSliding: false
+      jumpPower: 10,
+      dashPower: 15,
+      dx: 0,
+      dy: 0,
+      isSliding: false,
+      isJumping: false,
+      isCrouching: false
     };
 
     function update() {
       if (player.isSliding) {
-        player.x += player.speed * 2;
+        player.dx = player.dashPower;
+      } else {
+        player.dx = 0;
       }
 
+      if (player.isJumping) {
+        player.dy = -player.jumpPower;
+        player.isJumping = false;
+      }
+
+      player.dy += 1; // Gravity effect
+
+      player.x += player.dx;
+      player.y += player.dy;
+
+      // Update other game logic here
+
+      // Check for collisions with the canvas boundaries
       if (player.x < 0) player.x = 0;
       if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
       if (player.y < 0) player.y = 0;
-      if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+      if (player.y + player.height > canvas.height) {
+        player.y = canvas.height - player.height;
+        player.dy = 0; // Reset vertical velocity when on the ground
+      }
+
+      // Simulate crouching (reducing player size)
+      player.height = player.isCrouching ? 15 : 30;
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw player
       ctx.fillStyle = 'blue';
-      ctx.fillRect(player.x, player.y, player.width, player.height)
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Draw other game elements here
     }
 
     function gameLoop() {
@@ -63,26 +94,42 @@
     document.addEventListener('keydown', (event) => {
       switch (event.key) {
         case 'w':
-          player.y -= player.speed;
+          if (!player.isJumping) {
+            player.isJumping = true;
+          }
           break;
         case 'a':
-          player.x -= player.speed;
+          player.dx = -player.speed;
           break;
         case 's':
-          player.y += player.speed;
+          player.isCrouching = true;
           break;
         case 'd':
-          player.x += player.speed;
+          player.dx = player.speed;
           break;
         case 'q':
+          // Change Q key to dash
           player.isSliding = true;
           break;
       }
     });
 
     document.addEventListener('keyup', (event) => {
-      if (event.key === 'q') {
-        player.isSliding = false;
+      switch (event.key) {
+        case 'w':
+          // Allow jumping only when the key is released
+          player.isJumping = false;
+          break;
+        case 'a':
+        case 'd':
+          player.dx = 0;
+          break;
+        case 's':
+          player.isCrouching = false;
+          break;
+        case 'q':
+          player.isSliding = false;
+          break;
       }
     });
 
@@ -90,4 +137,3 @@
   </script>
 </body>
 </html>
-
