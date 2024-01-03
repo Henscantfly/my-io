@@ -7,9 +7,15 @@
     body {
       margin: 0;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
     }
 
     canvas {
+      border: 2px solid #333;
       display: block;
     }
   </style>
@@ -84,7 +90,8 @@
 
     document.addEventListener('keyup', (event) => {
       if (event.key === 'q') {
-         player.isSliding = false;
+        // Disable sliding when Q key is released
+        player.isSliding = false;
       }
     });
 
@@ -92,5 +99,4 @@
   </script>
 </body>
 </html>
-
 
