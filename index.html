@@ -24,7 +24,9 @@
             y: 50,
             width: 20,
             height: 20,
-            speed: 2
+            speed: 2,
+            rotating: false,
+            rotation: 0
         };
 
         function update() {
@@ -36,16 +38,32 @@
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance > 1) {
+                rect.rotating = true;
+
                 rect.x += (dx / distance) * rect.speed;
                 rect.y += (dy / distance) * rect.speed;
+            } else {
+                rect.rotating = false;
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#00F'; // Blue color
-            ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+            if (rect.rotating) {
+                rect.rotation = Math.atan2(event.clientY - rect.y, event.clientX - rect.x);
+            }
+
+            ctx.save();
+            ctx.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
+            ctx.rotate(rect.rotation);
+
+            ctx.fillStyle = rect.rotating ? '#F00' : '#00F'; // Red color when rotating, blue otherwise
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rect.width / 2, rect.height / 2, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.restore();
 
             requestAnimationFrame(draw);
         }
@@ -59,3 +77,4 @@
     </script>
 </body>
 </html>
+
