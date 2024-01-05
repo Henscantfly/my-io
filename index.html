@@ -10,7 +10,7 @@
             margin: 20px auto;
         }
     </style>
-    <title>Oval-Mouse Game</title>
+    <title>Boids Game</title>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -26,27 +26,78 @@
             height: 20,
             speed: 2,
             targetX: 50,
-            targetY: 50
+            targetY: 50,
+            rotation: 0
         };
+
+        let boids = [];
+
+        // Function to generate a random number between min and max
+        function getRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Create initial boids
+        for (let i = 0; i < 50; i++) {
+            boids.push({
+                x: getRandom(0, canvas.width),
+                y: getRandom(0, canvas.height),
+                speed: 1,
+                rotation: 0
+            });
+        }
+
+        function updateBoids() {
+            for (let boid of boids) {
+                const dx = oval.x - boid.x;
+                const dy = oval.y - boid.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 50) {
+                    // Move away from the player
+                    boid.x -= (dx / distance) * boid.speed;
+                    boid.y -= (dy / distance) * boid.speed;
+                } else {
+                    // Move randomly
+                    boid.x += getRandom(-1, 1) * boid.speed;
+                    boid.y += getRandom(-1, 1) * boid.speed;
+                }
+            }
+        }
 
         function update() {
             const dx = oval.targetX - oval.x;
             const dy = oval.targetY - oval.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
 
-            if (distance > 1) {
-                oval.x += (dx / distance) * oval.speed;
-                oval.y += (dy / distance) * oval.speed;
-            }
+            oval.x += Math.cos(angle) * oval.speed;
+            oval.y += Math.sin(angle) * oval.speed;
+
+            oval.rotation = angle;
+
+            updateBoids();
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#00F'; // Blue color
+            // Draw boids
+            ctx.fillStyle = '#999'; // Gray color for boids
+            for (let boid of boids) {
+                ctx.beginPath();
+                ctx.ellipse(boid.x, boid.y, 5, 5, 0, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // Draw player (oval)
+            ctx.fillStyle = '#00F'; // Blue color for the player
+            ctx.translate(oval.x, oval.y);
+            ctx.rotate(oval.rotation);
             ctx.beginPath();
-            ctx.ellipse(oval.x, oval.y, oval.width / 2, oval.height / 2, 0, 0, 2 * Math.PI);
+            ctx.ellipse(0, 0, oval.width / 2, oval.height / 2, 0, 0, 2 * Math.PI);
             ctx.fill();
+            ctx.rotate(-oval.rotation);
+            ctx.translate(-oval.x, -oval.y);
 
             requestAnimationFrame(draw);
         }
@@ -65,5 +116,3 @@
     </script>
 </body>
 </html>
-
-
