@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <h1>KOI PLOY!</h1>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -10,7 +11,7 @@
             margin: 20px auto;
         }
     </style>
-    <title>Boids Game</title>
+    <title>THE KOI PLOY</title>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -32,17 +33,15 @@
 
         let boids = [];
 
-        // Function to generate a random number between min and max
         function getRandom(min, max) {
             return Math.random() * (max - min) + min;
         }
 
-        // Create initial boids
         for (let i = 0; i < 50; i++) {
             boids.push({
                 x: getRandom(0, canvas.width),
                 y: getRandom(0, canvas.height),
-                speed: 1,
+                speed: 2,
                 rotation: 0
             });
         }
@@ -54,11 +53,9 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < 50) {
-                    // Move away from the player
                     boid.x -= (dx / distance) * boid.speed;
                     boid.y -= (dy / distance) * boid.speed;
                 } else {
-                    // Move randomly
                     boid.x += getRandom(-1, 1) * boid.speed;
                     boid.y += getRandom(-1, 1) * boid.speed;
                 }
@@ -81,16 +78,14 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw boids
-            ctx.fillStyle = '#999'; // Gray color for boids
+            ctx.fillStyle = '#999'; 
             for (let boid of boids) {
                 ctx.beginPath();
-                ctx.ellipse(boid.x, boid.y, 5, 5, 0, 0, 2 * Math.PI);
+                ctx.ellipse(boid.x, boid.y, 5, 7, 0, 0, 2 * Math.PI);
                 ctx.fill();
             }
 
-            // Draw player (oval)
-            ctx.fillStyle = '#00F'; // Blue color for the player
+            ctx.fillStyle = '#E34427';
             ctx.translate(oval.x, oval.y);
             ctx.rotate(oval.rotation);
             ctx.beginPath();
@@ -112,7 +107,7 @@
             oval.targetY = event.clientY - canvas.getBoundingClientRect().top;
         });
 
-        setInterval(gameLoop, 16); // Adjust the speed by changing the interval time
+        setInterval(gameLoop, 16);
     </script>
 </body>
 </html>
