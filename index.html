@@ -21,11 +21,12 @@
         const ctx = canvas.getContext('2d');
 
         class Boid {
-            constructor(x, y) {
+            constructor(x, y, group) {
                 this.x = x;
                 this.y = y;
                 this.speed = 2;
                 this.rotation = 0;
+                this.group = group;
             }
 
             update(oval) {
@@ -93,7 +94,7 @@
         for (let i = 0; i < 3; i++) {
             let boidGroup = [];
             for (let j = 0; j < 15; j++) {
-                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height)));
+                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height), i));
             }
             boidGroups.push(boidGroup);
         }
@@ -115,7 +116,17 @@
 
             // Update boid groups
             for (let boidGroup of boidGroups) {
+                const groupCenterX = boidGroup.reduce((sum, boid) => sum + boid.x, 0) / boidGroup.length;
+                const groupCenterY = boidGroup.reduce((sum, boid) => sum + boid.y, 0) / boidGroup.length;
+
                 for (let boid of boidGroup) {
+                    const dx = groupCenterX - boid.x;
+                    const dy = groupCenterY - boid.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    boid.x += (dx / distance) * boid.speed;
+                    boid.y += (dy / distance) * boid.speed;
+
                     boid.update(oval);
                 }
             }
