@@ -9,7 +9,6 @@
             border: 1px solid #000;
             display: block;
             margin: 20px auto;
-            background-color: blue;
         }
     </style>
     <title>THE KOI PLOY</title>
@@ -28,26 +27,53 @@
                 this.speed = 2;
                 this.rotation = 0;
                 this.group = group;
+                this.nearFish = false;
             }
 
-            update(oval) {
+            update(oval, otherFish) {
                 const dx = oval.x - this.x;
                 const dy = oval.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const distanceToOval = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 50) {
-                    this.x -= (dx / distance) * this.speed;
-                    this.y -= (dy / distance) * this.speed;
-                } else {
-                    this.x += getRandom(-1, 1) * this.speed;
-                    this.y += getRandom(-1, 1) * this.speed;
+                // Check if oval is near
+                if (distanceToOval < 50) {
+                    this.nearFish = true;
+                    setTimeout(() => {
+                        this.nearFish = false;
+                    }, 1000);
                 }
+
+                if (this.nearFish) {
+                    // Move extremely quickly when oval is near
+                    this.x += (dx / distanceToOval) * this.speed * 5;
+                    this.y += (dy / distanceToOval) * this.speed * 5;
+                } else {
+                    // Move based on group behavior
+                    const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
+                    const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
+
+                    const dx = groupCenterX - this.x;
+                    const dy = groupCenterY - this.y;
+                    const distanceToGroupCenter = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distanceToGroupCenter > 10) {
+                        // Move toward the group center
+                        this.x += (dx / distanceToGroupCenter) * this.speed;
+                        this.y += (dy / distanceToGroupCenter) * this.speed;
+                    }
+
+                    // Slowdown after quick movement
+                    this.speed *= 0.98;
+                }
+
+                // Update rotation
+                this.rotation = Math.atan2(dy, dx);
             }
 
             draw() {
                 ctx.fillStyle = '#999';
                 ctx.beginPath();
-                ctx.ellipse(this.x, this.y, 5, 7, 0, 0, 2 * Math.PI);
+                ctx.ellipse(this.x, this.y, 5, 7, this.rotation, 0, 2 * Math.PI);
                 ctx.fill();
             }
         }
@@ -57,7 +83,6 @@
                 this.x = x;
                 this.y = y;
                 this.speed = 1.5;
-                this.rotation = 0;
             }
 
             update() {
@@ -95,7 +120,7 @@
         for (let i = 0; i < 3; i++) {
             let boidGroup = [];
             for (let j = 0; j < 15; j++) {
-                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height), i));
+                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height), boidGroup));
             }
             boidGroups.push(boidGroup);
         }
@@ -117,18 +142,8 @@
 
             // Update boid groups
             for (let boidGroup of boidGroups) {
-                const groupCenterX = boidGroup.reduce((sum, boid) => sum + boid.x, 0) / boidGroup.length;
-                const groupCenterY = boidGroup.reduce((sum, boid) => sum + boid.y, 0) / boidGroup.length;
-
                 for (let boid of boidGroup) {
-                    const dx = groupCenterX - boid.x;
-                    const dy = groupCenterY - boid.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    boid.x += (dx / distance) * boid.speed;
-                    boid.y += (dy / distance) * boid.speed;
-
-                    boid.update(oval);
+                    boid.update(oval, otherFish);
                 }
             }
 
