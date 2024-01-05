@@ -20,6 +20,57 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        class Boid {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.speed = 2;
+                this.rotation = 0;
+            }
+
+            update(oval) {
+                const dx = oval.x - this.x;
+                const dy = oval.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 50) {
+                    this.x -= (dx / distance) * this.speed;
+                    this.y -= (dy / distance) * this.speed;
+                } else {
+                    this.x += getRandom(-1, 1) * this.speed;
+                    this.y += getRandom(-1, 1) * this.speed;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = '#999';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, 5, 7, 0, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        class OtherFish {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.speed = 1.5;
+                this.rotation = 0;
+            }
+
+            update() {
+                this.x += getRandom(-1, 1) * this.speed;
+                this.y += getRandom(-1, 1) * this.speed;
+            }
+
+            draw() {
+                ctx.fillStyle = '#34B7F1';
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, 8, 5, 0, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
         let oval = {
             x: 50,
             y: 50,
@@ -31,35 +82,25 @@
             rotation: 0
         };
 
-        let boids = [];
+        let boidGroups = [];
+        let otherFish = [];
 
         function getRandom(min, max) {
             return Math.random() * (max - min) + min;
         }
 
-        for (let i = 0; i < 50; i++) {
-            boids.push({
-                x: getRandom(0, canvas.width),
-                y: getRandom(0, canvas.height),
-                speed: 2,
-                rotation: 0
-            });
+        // Create initial boid groups
+        for (let i = 0; i < 3; i++) {
+            let boidGroup = [];
+            for (let j = 0; j < 15; j++) {
+                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height)));
+            }
+            boidGroups.push(boidGroup);
         }
 
-        function updateBoids() {
-            for (let boid of boids) {
-                const dx = oval.x - boid.x;
-                const dy = oval.y - boid.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                if (distance < 50) {
-                    boid.x -= (dx / distance) * boid.speed;
-                    boid.y -= (dy / distance) * boid.speed;
-                } else {
-                    boid.x += getRandom(-1, 1) * boid.speed;
-                    boid.y += getRandom(-1, 1) * boid.speed;
-                }
-            }
+        // Create initial other fish
+        for (let i = 0; i < 10; i++) {
+            otherFish.push(new OtherFish(getRandom(0, canvas.width), getRandom(0, canvas.height)));
         }
 
         function update() {
@@ -72,19 +113,35 @@
 
             oval.rotation = angle;
 
-            updateBoids();
+            // Update boid groups
+            for (let boidGroup of boidGroups) {
+                for (let boid of boidGroup) {
+                    boid.update(oval);
+                }
+            }
+
+            // Update other fish
+            for (let fish of otherFish) {
+                fish.update();
+            }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#999'; 
-            for (let boid of boids) {
-                ctx.beginPath();
-                ctx.ellipse(boid.x, boid.y, 5, 7, 0, 0, 2 * Math.PI);
-                ctx.fill();
+            // Draw other fish
+            for (let fish of otherFish) {
+                fish.draw();
             }
 
+            // Draw boid groups
+            for (let boidGroup of boidGroups) {
+                for (let boid of boidGroup) {
+                    boid.draw();
+                }
+            }
+
+            // Draw player (oval)
             ctx.fillStyle = '#E34427';
             ctx.translate(oval.x, oval.y);
             ctx.rotate(oval.rotation);
