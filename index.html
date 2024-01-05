@@ -10,7 +10,7 @@
             margin: 20px auto;
         }
     </style>
-    <title>Rect-Mouse Game</title>
+    <title>Oval-Mouse Game</title>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -19,51 +19,34 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        let rect = {
+        let oval = {
             x: 50,
             y: 50,
-            width: 20,
+            width: 30,
             height: 20,
             speed: 2,
-            rotating: false,
-            rotation: 0
+            targetX: 50,
+            targetY: 50
         };
 
         function update() {
-            const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-            const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-
-            const dx = mouseX - rect.x;
-            const dy = mouseY - rect.y;
+            const dx = oval.targetX - oval.x;
+            const dy = oval.targetY - oval.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance > 1) {
-                rect.rotating = true;
-
-                rect.x += (dx / distance) * rect.speed;
-                rect.y += (dy / distance) * rect.speed;
-            } else {
-                rect.rotating = false;
+                oval.x += (dx / distance) * oval.speed;
+                oval.y += (dy / distance) * oval.speed;
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (rect.rotating) {
-                rect.rotation = Math.atan2(event.clientY - rect.y, event.clientX - rect.x);
-            }
-
-            ctx.save();
-            ctx.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
-            ctx.rotate(rect.rotation);
-
-            ctx.fillStyle = rect.rotating ? '#F00' : '#00F'; // Red color when rotating, blue otherwise
+            ctx.fillStyle = '#00F'; // Blue color
             ctx.beginPath();
-            ctx.ellipse(0, 0, rect.width / 2, rect.height / 2, 0, 0, 2 * Math.PI);
+            ctx.ellipse(oval.x, oval.y, oval.width / 2, oval.height / 2, 0, 0, 2 * Math.PI);
             ctx.fill();
-
-            ctx.restore();
 
             requestAnimationFrame(draw);
         }
@@ -73,8 +56,14 @@
             draw();
         }
 
-        document.addEventListener('mousemove', gameLoop);
+        canvas.addEventListener('mousemove', function(event) {
+            oval.targetX = event.clientX - canvas.getBoundingClientRect().left;
+            oval.targetY = event.clientY - canvas.getBoundingClientRect().top;
+        });
+
+        setInterval(gameLoop, 16); // Adjust the speed by changing the interval time
     </script>
 </body>
 </html>
+
 
