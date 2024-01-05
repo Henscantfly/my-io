@@ -1,133 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f0f0f0;
-    }
-
-    canvas {
-      border: 2px solid #333;
-      display: block;
-      background-color: #494949;
-    }
-  </style>
-  <title>Platformer Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+    <title>Rect-Mouse Game</title>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    const player = {
-      x: 50,
-      y: 50,
-      width: 30,
-      height: 30,
-      speed: 5,
-      jumpPower: 10,
-      dashSpeed: 10,
-      isSliding: false,
-      isJumping: false,
-      isCrouching: false
-    };
+        let rect = {
+            x: 50,
+            y: 50,
+            width: 20,
+            height: 20,
+            speed: 2
+        };
 
-    function update() {
-      if (player.isSliding) {
-        player.x += player.speed * 2;
-      }
+        function update() {
+            const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+            const mouseY = event.clientY - canvas.getBoundingClientRect().top;
 
-      if (player.isJumping) {
-        player.y -= player.jumpPower;
-      }
+            const dx = mouseX - rect.x;
+            const dy = mouseY - rect.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-      player.y += player.speed; // Simulate gravity
+            if (distance > 1) {
+                rect.x += (dx / distance) * rect.speed;
+                rect.y += (dy / distance) * rect.speed;
+            }
+        }
 
-      // Update other game logic here
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Check for collisions with the canvas boundaries
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-      if (player.y < 0) {
-        player.y = 0;
-        player.isJumping = false; // Reset jumping when reaching the ground
-      }
-      if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
-    }
+            ctx.fillStyle = '#00F'; // Blue color
+            ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(draw);
+        }
 
-      // Draw player
-      ctx.fillStyle = 'blue';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+        function gameLoop() {
+            update();
+            draw();
+        }
 
-      // Draw other game elements here
-    }
-
-    function gameLoop() {
-      update();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
-
-    document.addEventListener('keydown', (event) => {
-      switch (event.key) {
-        case 'w':
-          if (!player.isJumping) {
-            player.isJumping = true;
-          }
-          break;
-        case 'a':
-          player.isSliding = false;
-          player.x -= player.speed;
-          break;
-        case 's':
-          player.isCrouching = true;
-          break;
-        case 'd':
-          player.isSliding = true;
-          player.x += player.speed;
-          break;
-        case 'q':
-          // Dash in the direction the player is facing
-          player.x += player.isSliding ? player.dashSpeed * 2 : player.dashSpeed;
-          break;
-      }
-    });
-
-    document.addEventListener('keyup', (event) => {
-      switch (event.key) {
-        case 'w':
-          // Allow jumping again when 'W' key is released
-          player.isJumping = false;
-          break;
-        case 'a':
-          player.isSliding = false;
-          player.x -= player.speed;
-          break;
-        case 's':
-          player.isCrouching = false;
-          break;
-        case 'd':
-          player.isSliding = false;
-          player.x += player.speed;
-          break;
-      }
-    });
-
-    gameLoop();
-  </script>
+        document.addEventListener('mousemove', gameLoop);
+    </script>
 </body>
 </html>
-
