@@ -59,8 +59,8 @@
                 }
 
                 if (this.nearFish) {
-                    this.x += (dx / distanceToOval) * this.speed * 5;
-                    this.y += (dy / distanceToOval) * this.speed * 5;
+                    this.x += (dx / distanceToOval) * this.speed * 2;
+                    this.y += (dy / distanceToOval) * this.speed * 2;
                 } else {
                     const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
                     const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
