@@ -30,13 +30,12 @@
                 this.nearFish = false;
             }
 
-            update(oval, otherFish) {
-                const dx = this.x - oval.x;
-                const dy = this.y - oval.y;
-                const distanceToOval = Math.sqrt(dx * dx + dy * dy);
-
-                // Check if oval is near
-                if (distanceToOval < 50) {
+            update(playerFish, otherFish) {
+                const dx = this.x - playerFish.x;
+                const dy = this.y - playerFish.y;
+                const distanceToplayerFish = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distanceToplayerFish < 50) {
                     this.nearFish = true;
                     setTimeout(() => {
                         this.nearFish = false;
@@ -59,8 +58,8 @@
                 }
 
                 if (this.nearFish) {
-                    this.x += (dx / distanceToOval) * this.speed * 2;
-                    this.y += (dy / distanceToOval) * this.speed * 2;
+                    this.x += (dx / distanceToplayerFish) * this.speed * 2;
+                    this.y += (dy / distanceToplayerFish) * this.speed * 2;
                 } else {
                     const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
                     const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
@@ -108,12 +107,12 @@
             }
         }
 
-        let oval = {
+        let playerFish = {
             x: 50,
             y: 50,
             width: 30,
             height: 20,
-            speed: 2,
+            speed: 4,
             targetX: 50,
             targetY: 50,
             rotation: 0
@@ -141,19 +140,19 @@
         }
 
         function update() {
-            const dx = oval.targetX - oval.x;
-            const dy = oval.targetY - oval.y;
+            const dx = playerFish.targetX - playerFish.x;
+            const dy = playerFish.targetY - playerFish.y;
             const angle = Math.atan2(dy, dx);
 
-            oval.x += Math.cos(angle) * oval.speed;
-            oval.y += Math.sin(angle) * oval.speed;
+            playerFish.x += Math.cos(angle) * playerFish.speed;
+            playerFish.y += Math.sin(angle) * playerFish.speed;
 
-            oval.rotation = angle;
+            playerFish.rotation = angle;
 
             // Update boid groups
             for (let boidGroup of boidGroups) {
                 for (let boid of boidGroup) {
-                    boid.update(oval, otherFish);
+                    boid.update(playerFish, otherFish);
                 }
             }
 
@@ -178,15 +177,15 @@
                 }
             }
 
-            // Draw player (oval)
+            // Draw player (playerFish)
             ctx.fillStyle = '#E34427';
-            ctx.translate(oval.x, oval.y);
-            ctx.rotate(oval.rotation);
+            ctx.translate(playerFish.x, playerFish.y);
+            ctx.rotate(playerFish.rotation);
             ctx.beginPath();
-            ctx.ellipse(0, 0, oval.width / 2, oval.height / 2, 0, 0, 2 * Math.PI);
+            ctx.ellipse(0, 0, playerFish.width / 2, playerFish.height / 2, 0, 0, 2 * Math.PI);
             ctx.fill();
-            ctx.rotate(-oval.rotation);
-            ctx.translate(-oval.x, -oval.y);
+            ctx.rotate(-playerFish.rotation);
+            ctx.translate(-playerFish.x, -playerFish.y);
 
             requestAnimationFrame(draw);
         }
@@ -197,8 +196,8 @@
         }
 
         canvas.addEventListener('mousemove', function(event) {
-            oval.targetX = event.clientX - canvas.getBoundingClientRect().left;
-            oval.targetY = event.clientY - canvas.getBoundingClientRect().top;
+            playerFish.targetX = event.clientX - canvas.getBoundingClientRect().left;
+            playerFish.targetY = event.clientY - canvas.getBoundingClientRect().top;
         });
 
         setInterval(gameLoop, 16);
