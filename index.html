@@ -24,7 +24,7 @@
             constructor(x, y, group) {
                 this.x = x;
                 this.y = y;
-                this.speed = 2;
+                this.speed = 3;
                 this.rotation = 0;
                 this.group = group;
                 this.nearFish = false;
@@ -59,11 +59,9 @@
                 }
 
                 if (this.nearFish) {
-                    // Explosive movement reaction for a split second
                     this.x += (dx / distanceToOval) * this.speed * 5;
                     this.y += (dy / distanceToOval) * this.speed * 5;
                 } else {
-                    // Move based on group behavior
                     const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
                     const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
 
@@ -72,13 +70,10 @@
                     const distanceToGroupCenter = Math.sqrt(dx * dx + dy * dy);
 
                     if (distanceToGroupCenter > 10) {
-                        // Move away slowly
-                        this.x += (dx / distanceToGroupCenter) * this.speed * 0.5;
-                        this.y += (dy / distanceToGroupCenter) * this.speed * 0.5;
+                        this.x += (dx / distanceToGroupCenter) * this.speed * 1;
+                        this.y += (dy / distanceToGroupCenter) * this.speed * 1;
                     }
-
-                    // Slowdown after quick movement
-                    this.speed *= 0.98;
+                    this.speed *= 1;
                 }
 
                 // Update rotation
