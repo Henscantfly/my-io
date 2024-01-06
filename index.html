@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         canvas {
-            border: 4px solid #000;
+            border: 1px solid #000;
             display: block;
             margin: 20px auto;
         }
@@ -31,8 +31,8 @@
             }
 
             update(oval, otherFish) {
-                const dx = oval.x - this.x;
-                const dy = oval.y - this.y;
+                const dx = this.x - oval.x;
+                const dy = this.y - oval.y;
                 const distanceToOval = Math.sqrt(dx * dx + dy * dy);
 
                 // Check if oval is near
@@ -40,11 +40,26 @@
                     this.nearFish = true;
                     setTimeout(() => {
                         this.nearFish = false;
-                    }, 1000);
+                    }, 100);
+                }
+
+                // Check if any other fish is near
+                for (let fish of otherFish) {
+                    const dx = this.x - fish.x;
+                    const dy = this.y - fish.y;
+                    const distanceToFish = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distanceToFish < 50) {
+                        this.nearFish = true;
+                        setTimeout(() => {
+                            this.nearFish = false;
+                        }, 100);
+                        break;
+                    }
                 }
 
                 if (this.nearFish) {
-                    // Move extremely quickly when oval is near
+                    // Explosive movement reaction for a split second
                     this.x += (dx / distanceToOval) * this.speed * 5;
                     this.y += (dy / distanceToOval) * this.speed * 5;
                 } else {
@@ -52,14 +67,14 @@
                     const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
                     const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
 
-                    const dx = groupCenterX - this.x;
-                    const dy = groupCenterY - this.y;
+                    const dx = this.x - groupCenterX;
+                    const dy = this.y - groupCenterY;
                     const distanceToGroupCenter = Math.sqrt(dx * dx + dy * dy);
 
                     if (distanceToGroupCenter > 10) {
-                        // Move toward the group center
-                        this.x += (dx / distanceToGroupCenter) * this.speed;
-                        this.y += (dy / distanceToGroupCenter) * this.speed;
+                        // Move away slowly
+                        this.x += (dx / distanceToGroupCenter) * this.speed * 0.5;
+                        this.y += (dy / distanceToGroupCenter) * this.speed * 0.5;
                     }
 
                     // Slowdown after quick movement
