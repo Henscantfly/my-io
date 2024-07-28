@@ -1,226 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <h1>KOI AHOY!</h1>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        canvas {
-            border: 3px solid #000;
-            display: block;
-            margin: 20px auto;
-        }
-    </style>
-    <title>THE KOI AHOY!</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Cube</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+    }
+
+    #container {
+        width: 300px;
+        height: 300px;
+        perspective: 800px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .cube {
+        width: 200px;
+        height: 200px;
+        transform-style: preserve-3d;
+        transition: transform 0.1s;
+    }
+
+    .face {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        color: white;
+        background-color: #494949;
+        border: 4px solid #2f2f2f;
+    }
+
+    .face.front  { transform: translateZ(100px); }
+    .face.back   { transform: rotateY(180deg) translateZ(100px); }
+    .face.right  { transform: rotateY(90deg) translateZ(100px); }
+    .face.left   { transform: rotateY(-90deg) translateZ(100px); }
+    .face.top    { transform: rotateX(90deg) translateZ(100px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+    .controls {
+        margin-top: 20px;
+    }
+
+    label {
+        font-size: 18px;
+        margin-right: 10px;
+    }
+
+    #colorPicker {
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        outline: none;
+    }
+
+    #colorPicker::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    #colorPicker::-webkit-color-swatch {
+		border: none;
+        border-radius: 50%;
+    }
+
+</style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="container" onmousedown="startDrag(event)" onmouseup="endDrag()">
+    <div class="cube" id="cube">
+        <div class="face front">Front</div>
+        <div class="face back">Back</div>
+        <div class="face right">Right</div>
+        <div class="face left">Left</div>
+        <div class="face top">Top</div>
+        <div class="face bottom">Bottom</div>
+    </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+<div class="controls">
+    <label for="colorPicker">	Choose a color for the cube:</label>
+    <input type="color" id="colorPicker" value="#494949" onchange="changeColor(this.value)">
+</div>
 
-        class Boid {
-            constructor(x, y, group) {
-                this.x = x;
-                this.y = y;
-                this.speed = 2;
-                this.rotation = 0;
-                this.group = group;
-                this.nearFish = false;
-            }
+<script>
+  let isDragging = false;
+    let initialX = 0;
+    let initialY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let rotationX = 0;
+    let rotationY = 0;
 
-            update(oval, otherFish) {
-                const dx = this.x - oval.x;
-                const dy = this.y - oval.y;
-                const distanceToOval = Math.sqrt(dx * dx + dy * dy);
+    function startDrag(event) {
+        if (event.button === 2) { // Right mouse button
+            isDragging = true;
+            initialX = event.clientX;
+            initialY = event.clientY;
 
-                // Check if oval is near
-                if (distanceToOval < 50) {
-                    this.nearFish = true;
-                    setTimeout(() => {
-                        this.nearFish = false;
-                    }, 100);
-                }
-
-                // Check if any other fish is near
-                for (let fish of otherFish) {
-                    const dx = this.x - fish.x;
-                    const dy = this.y - fish.y;
-                    const distanceToFish = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distanceToFish < 50) {
-                        this.nearFish = true;
-                        setTimeout(() => {
-                            this.nearFish = false;
-                        }, 100);
-                        break;
-                    }
-                }
-
-                if (this.nearFish) {
-                    // Explosive movement reaction for a split second
-                    this.x += (dx / distanceToOval) * this.speed * 5;
-                    this.y += (dy / distanceToOval) * this.speed * 5;
-                } else {
-                    // Move based on group behavior
-                    const groupCenterX = this.group.reduce((sum, boid) => sum + boid.x, 0) / this.group.length;
-                    const groupCenterY = this.group.reduce((sum, boid) => sum + boid.y, 0) / this.group.length;
-
-                    const dx = this.x - groupCenterX;
-                    const dy = this.y - groupCenterY;
-                    const distanceToGroupCenter = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distanceToGroupCenter > 10) {
-                        // Move away slowly
-                        this.x += (dx / distanceToGroupCenter) * this.speed * 0.5;
-                        this.y += (dy / distanceToGroupCenter) * this.speed * 0.5;
-                    }
-
-                    // Slowdown after quick movement
-                    this.speed *= 0.98;
-                }
-
-                // Update rotation
-                this.rotation = Math.atan2(dy, dx);
-                this.checkBoundaries();
-            }
-
-            checkBoundaries() {
-                // Ensure boid stays within canvas boundaries
-                this.x = Math.max(0, Math.min(this.x, canvas.width));
-                this.y = Math.max(0, Math.min(this.y, canvas.height));
-            }
-
-            draw() {
-                ctx.fillStyle = '#999';
-                ctx.beginPath();
-                ctx.ellipse(this.x, this.y, 5, 7, this.rotation, 0, 2 * Math.PI);
-                ctx.fill();
-            }
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', endDrag);
         }
+    }
 
-        class OtherFish {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.speed = 1.5;
-            }
-
-            update() {
-                this.x += getRandom(-1, 1) * this.speed;
-                this.y += getRandom(-1, 1) * this.speed;
-                this.checkBoundaries();
-            }
-
-            checkBoundaries() {
-                // Ensure other fish stays within canvas boundaries
-                this.x = Math.max(0, Math.min(this.x, canvas.width));
-                this.y = Math.max(0, Math.min(this.y, canvas.height));
-            }
-
-            draw() {
-                ctx.fillStyle = '#34B7F1';
-                ctx.beginPath();
-                ctx.ellipse(this.x, this.y, 8, 5, 0, 0, 2 * Math.PI);
-                ctx.fill();
-            }
+    function endDrag() {
+        if (isDragging) {
+            isDragging = false;
+            document.removeEventListener('mousemove', handleDrag);
+            document.removeEventListener('mouseup', endDrag);
         }
+    }
 
-        let oval = {
-            x: 50,
-            y: 50,
-            width: 30,
-            height: 20,
-            speed: 2,
-            targetX: 50,
-            targetY: 50,
-            rotation: 0
-        };
+    function handleDrag(event) {
+        if (isDragging) {
+            currentX = event.clientX;
+            currentY = event.clientY;
 
-        let boidGroups = [];
-        let otherFish = [];
+            let deltaX = currentX - initialX;
+            let deltaY = currentY - initialY;
 
-        function getRandom(min, max) {
-            return Math.random() * (max - min) + min;
+            rotationY += deltaX * 0.5;
+            rotationX -= deltaY * 0.5;
+
+            document.getElementById('cube').style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+
+            initialX = currentX;
+            initialY = currentY;
         }
+    }
 
-        // Create initial boid groups
-        for (let i = 0; i < 3; i++) {
-            let boidGroup = [];
-            for (let j = 0; j < 15; j++) {
-                boidGroup.push(new Boid(getRandom(0, canvas.width), getRandom(0, canvas.height), boidGroup));
-            }
-            boidGroups.push(boidGroup);
-        }
-
-        // Create initial other fish
-        for (let i = 0; i < 10; i++) {
-            otherFish.push(new OtherFish(getRandom(0, canvas.width), getRandom(0, canvas.height)));
-        }
-
-        function update() {
-            const dx = oval.targetX - oval.x;
-            const dy = oval.targetY - oval.y;
-            const angle = Math.atan2(dy, dx);
-
-            oval.x += Math.cos(angle) * oval.speed;
-            oval.y += Math.sin(angle) * oval.speed;
-
-            oval.rotation = angle;
-
-            // Update boid groups
-            for (let boidGroup of boidGroups) {
-                for (let boid of boidGroup) {
-                    boid.update(oval, otherFish);
-                }
-            }
-
-            // Update other fish
-            for (let fish of otherFish) {
-                fish.update();
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw other fish
-            for (let fish of otherFish) {
-                fish.draw();
-            }
-
-            // Draw boid groups
-            for (let boidGroup of boidGroups) {
-                for (let boid of boidGroup) {
-                    boid.draw();
-                }
-            }
-
-            // Draw player (oval)
-            ctx.fillStyle = '#E34427';
-            ctx.translate(oval.x, oval.y);
-            ctx.rotate(oval.rotation);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, oval.width / 2, oval.height / 2, 0, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.rotate(-oval.rotation);
-            ctx.translate(-oval.x, -oval.y);
-
-            requestAnimationFrame(draw);
-        }
-
-        function gameLoop() {
-            update();
-            draw();
-        }
-
-        canvas.addEventListener('mousemove', function(event) {
-            oval.targetX = event.clientX - canvas.getBoundingClientRect().left;
-            oval.targetY = event.clientY - canvas.getBoundingClientRect().top;
+    function changeColor(color) {
+        const faces = document.querySelectorAll('.face');
+        faces.forEach(face => {
+            face.style.backgroundColor = color;
         });
-
-        setInterval(gameLoop, 16);
-    </script>
+    }
+</script>
 </body>
 </html>
